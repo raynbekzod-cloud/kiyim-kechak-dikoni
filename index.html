@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MODA STIL - Onlayn Kiyim Do'koni</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .toast-show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- NAVIGATION -->
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('catalog')">
+          <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">M</div>
+          <span class="text-2xl font-black tracking-tight text-gray-900">MODA<span class="text-indigo-600">STIL</span></span>
+        </div>
+
+        <div class="hidden md:flex space-x-6">
+          <button onclick="filterCategory('all')" class="text-gray-600 hover:text-indigo-600 font-medium transition">Barchasi</button>
+          <button onclick="filterCategory('erkak')" class="text-gray-600 hover:text-indigo-600 font-medium transition">Erkaklar</button>
+          <button onclick="filterCategory('ayol')" class="text-gray-600 hover:text-indigo-600 font-medium transition">Ayollar</button>
+          <button onclick="filterCategory('aksessuar')" class="text-gray-600 hover:text-indigo-600 font-medium transition">Aksessuarlar</button>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="checkAdminAccess()" class="px-3 py-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-gear"></i> Admin Panel
+          </button>
+          <button onclick="toggleCartDrawer()" class="relative p-2 text-gray-700 hover:text-indigo-600 transition">
+            <i class="fa-solid fa-bag-shopping text-2xl"></i>
+            <span id="cartCount" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER -->
+  <section id="heroBanner" class="bg-gradient-to-r from-gray-900 via-indigo-950 to-gray-900 text-white py-12 px-4 mb-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div>
+        <span class="bg-indigo-500/20 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Yangi Kolleksiya</span>
+        <h1 class="text-3xl sm:text-5xl font-black mt-2 mb-3">Erkaklar Eleganti & Sportivniy To'plamlar</h1>
+        <p class="text-gray-300 max-w-xl text-sm sm:text-base">Klassik kostyumlar, yaponcha zipkalar hamda zamonaviy sportivka dvoykalar eng hamyonbop narxlarda.</p>
+      </div>
+      <button onclick="filterCategory('erkak')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/30 transition whitespace-nowrap">
+        Kolleksiyani ko'rish <i class="fa-solid fa-arrow-right ml-2"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- ADMIN PANEL MODAL -->
+  <div id="adminModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-4 mb-4">
+        <h2 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-sliders mr-2 text-indigo-600"></i>Mahsulotlar Boshqaruvi</h2>
+        <button onclick="toggleAdminPanel()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <form id="addProductForm" onsubmit="handleSaveProduct(event)" class="space-y-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h3 class="font-semibold text-gray-800 text-sm">Yangi mahsulot qo'shish / Tahrirlash</h3>
+        <input type="hidden" id="editProductId">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Nomi</label>
+            <input type="text" id="prodName" required placeholder="Masalan: Japan Zipka" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Kategoriya</label>
+            <select id="prodCategory" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="erkak">Erkaklar</option>
+              <option value="ayol">Ayollar</option>
+              <option value="aksessuar">Aksessuarlar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Narxi (so'm)</label>
+            <input type="number" id="prodPrice" required placeholder="290000" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Rasm yuklash (Kompyuterdan)</label>
+            <input type="file" id="prodImageFile" accept="image/*" onchange="handleFileSelect(event)" class="w-full text-xs text-gray-500 border border-gray-300 rounded-lg p-2 bg-white cursor-pointer">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Yoki Rasm URL (Link bering)</label>
+          <input type="url" id="prodImageUrl" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="flex gap-2 justify-end pt-2">
+          <button type="button" onclick="resetAdminForm()" class="px-4 py-2 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Bekor qilish</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"><i class="fa-solid fa-check mr-1"></i> Saqlash</button>
+        </div>
+      </form>
+
+      <h3 class="font-semibold text-gray-800 text-sm mb-3">Mavjud Mahsulotlar Ro'yxati</h3>
+      <div id="adminProductList" class="space-y-2 max-h-60 overflow-y-auto border-t pt-3">
+        <!-- JS dynamic render -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CATALOG PAGE -->
+  <main id="catalogPage" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 pb-16">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+      <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+        <button onclick="filterCategory('all')" class="cat-btn active bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap">Barchasi</button>
+        <button onclick="filterCategory('erkak')" class="cat-btn bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 whitespace-nowrap">Erkaklar</button>
+        <button onclick="filterCategory('ayol')" class="cat-btn bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 whitespace-nowrap">Ayollar</button>
+        <button onclick="filterCategory('aksessuar')" class="cat-btn bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 whitespace-nowrap">Aksessuarlar</button>
+      </div>
+      
+      <div class="relative w-full sm:w-64">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Mahsulot qidirish..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+      </div>
+    </div>
+
+    <!-- PRODUCTS GRID -->
+    <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Products will be injected here -->
+    </div>
+  </main>
+
+  <!-- CHECKOUT PAGE -->
+  <main id="checkoutPage" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 py-8">
+    <button onclick="showPage('catalog')" class="mb-6 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i> Katalogga qaytish
+    </button>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+        <h2 class="text-xl font-bold text-gray-900 border-b pb-3"><i class="fa-solid fa-truck-fast text-indigo-600 mr-2"></i>Yetkazib berish ma'lumotlari</h2>
+        
+        <form id="checkoutForm" onsubmit="handlePlaceOrder(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Ism va Familiya *</label>
+              <input type="text" required placeholder="Alisher Navoiy" class="w-full text-sm border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Telefon raqam *</label>
+              <input type="tel" required placeholder="+998 90 123 45 67" class="w-full text-sm border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Shahar / Viloyat *</label>
+            <select required class="w-full text-sm border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+              <option value="">Tanlang...</option>
+              <option value="Toshkent">Toshkent shahri</option>
+              <option value="Samarqand">Samarqand</option>
+              <option value="Fargona">Farg'ona</option>
+              <option value="Andijon">Andijon</option>
+              <option value="Buxoro">Buxoro</option>
+              <option value="Boshqa">Boshqa viloyat</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Aniq manzil *</label>
+            <input type="text" required placeholder="Tuman, ko'cha, uy / xonadon raqami" class="w-full text-sm border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+
+          <h3 class="text-md font-bold text-gray-900 border-b pb-2 pt-4"><i class="fa-regular fa-credit-card text-indigo-600 mr-2"></i>To'lov Usuli</h3>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <label class="border-2 border-indigo-600 bg-indigo-50/50 p-3 rounded-xl flex items-center justify-between cursor-pointer">
+              <div class="flex items-center gap-2">
+                <input type="radio" name="payment" value="card" checked class="text-indigo-600">
+                <span class="text-xs font-bold text-gray-800">Plastik Karta (Uzcard/Humo/Visa)</span>
+              </div>
+            </label>
+            <label class="border border-gray-200 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:border-gray-300">
+              <div class="flex items-center gap-2">
+                <input type="radio" name="payment" value="cash" class="text-indigo-600">
+                <span class="text-xs font-bold text-gray-800">Naqd pul (Kuryerga)</span>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-600/30 transition mt-4">
+            Buyurtmani Tasdiqlash va To'lash
+          </button>
+        </form>
+      </div>
+
+      <!-- Checkout Summary -->
+      <div class="lg:col-span-5">
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-24">
+          <h3 class="text-lg font-bold text-gray-900 border-b pb-3 mb-4">Buyurtma Mazmuni</h3>
+          <div id="checkoutSummaryList" class="space-y-3 max-h-60 overflow-y-auto mb-4">
+            <!-- JS Inject -->
+          </div>
+          <div class="border-t pt-3 space-y-2 text-sm">
+            <div class="flex justify-between text-gray-600">
+              <span>Mahsulotlar:</span>
+              <span id="checkoutSubtotal">0 so'm</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Yetkazib berish:</span>
+              <span class="text-green-600 font-semibold">12-18 kun (O'zbekiston bo'ylab)</span>
+            </div>
+            <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2">
+              <span>Jami:</span>
+              <span id="checkoutTotal" class="text-indigo-600">0 so'm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- CART SIDEBAR DRAWER -->
+  <div id="cartDrawer" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden transition-opacity">
+    <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-indigo-600"></i> Savatchangiz</h2>
+        <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Cart Items JS -->
+      </div>
+
+      <div class="p-4 border-t bg-gray-50 space-y-3">
+        <div class="flex justify-between items-center text-base font-bold text-gray-900">
+          <span>Umumiy Summa:</span>
+          <span id="cartTotalPrice" class="text-indigo-600">0 so'm</span>
+        </div>
+        <button onclick="goToCheckout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+          To'lov Sahifasiga O'tish <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 text-center max-w-sm w-full shadow-2xl">
+      <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-1">Rahmat! Buyurtmangiz qabul qilindi</h3>
+      <p class="text-xs text-gray-500 mb-4">Yetkazib berish muddati: 12-18 kun. Operatorlarimiz bog'lanishadi.</p>
+      <button onclick="finishOrder()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition">Katalogga qaytish</button>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-all duration-300 transform translate-y-20 opacity-0 z-50">
+    <i class="fa-solid fa-circle-check text-green-400 text-base"></i>
+    <span id="toastMsg">Savatga qo'shildi!</span>
+  </div>
+    
+
+  <script>
+    const defaultProducts = [
+      {
+        id: 101,
+        name: "Japan Zipka (Oq-qizil olimpiyka)",
+        category: "erkak",
+        price: 290000,
+        sizes: "S / 5XL",
+        delivery: "12-18 kun",
+        selectedColorIndex: 0,
+        variants: [
+          { colorName: "Yopiq yoqa", colorHex: "#dscegg", innerHTML = ` <img wit src="photo_2026-10-13_12-56-22.jpg" alt="">` },
+          { colorName: "Ochiq yoqa", colorHex: "#dc2626", image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&q=80&w=800" }
+        ]
+      },
+      {
+        id: 102,
+        name: "Kulrang Printli Sportivka Dvoyka",
+        category: "erkak",
+        price: 440000,
+        sizes: "S / 5XL",
+        delivery: "12-18 kun",
+        selectedColorIndex: 0,
+        variants: [
+          { colorName: "Kulrang to'plam", colorHex: "#9ca3af", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800" }
+        ]
+      },
+      {
+        id: 103,
+        name: "Qora Zip-xudi Balaklava + Kulrang Shim",
+        category: "erkak",
+        price: 415000,
+        sizes: "S / 5XL",
+        delivery: "12-18 kun",
+        selectedColorIndex: 0,
+        variants: [
+          { colorName: "Qora / Kulrang", colorHex: "#18181b", image: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=80&w=800" }
+        ]
+      },
+      {
+        id: 104,
+        name: "Japan Zipka Komplekt + Qora Shim",
+        category: "erkak",
+        price: 435000,
+        sizes: "S / 5XL",
+        delivery: "12-18 kun",
+        selectedColorIndex: 0,
+        variants: [
+          { colorName: "Japan Zipka + Qora", colorHex: "#27272a", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800" }
+        ]
+      }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('moda_products_v4')) || defaultProducts;
+    let cart = [];
+    let currentCategory = 'all';
+    let selectedImageData = '';
+
+    function init() {
+      saveProductsLocally();
+      renderProducts();
+      updateCartUI();
+      renderAdminProducts();
+    }
+
+    function saveProductsLocally() {
+      localStorage.setItem('moda_products_v4', JSON.stringify(products));
+    }
+
+    function selectColor(prodId, colorIndex) {
+      const p = products.find(prod => prod.id === prodId);
+      if(p) {
+        p.selectedColorIndex = colorIndex;
+        renderProducts();
+      }
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+      const searchVal = document.getElementById('searchInput').value.toLowerCase();
+      
+      const filtered = products.filter(p => {
+        const matchCat = currentCategory === 'all' || p.category === currentCategory;
+        const matchSearch = p.name.toLowerCase().includes(searchVal);
+        return matchCat && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">Mahsulot topilmadi</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const activeVar = p.variants ? p.variants[p.selectedColorIndex || 0] : { colorName: '', image: p.image };
+        const activeImg = activeVar ? activeVar.image : p.image;
+        const activeColorName = activeVar && activeVar.colorName ? ` (${activeVar.colorName})` : '';
+
+        return `
+          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition group flex flex-col justify-between">
+            <div>
+              <div class="relative h-72 overflow-hidden bg-gray-100">
+                <img src="${activeImg}" alt="${p.name}" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/400x500?text=Rasm+Mavjud+Emas'">
+                <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">
+                  ${p.category === 'erkak' ? 'Erkaklar' : p.category === 'ayol' ? 'Ayollar' : 'Aksessuar'}
+                </span>
+                <span class="absolute top-3 right-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">
+                  🇺🇿 O'zbekiston bo'ylab
+                </span>
+              </div>
+              <div class="p-4">
+                <h3 class="font-bold text-gray-900 text-base mb-1">${p.name}<span class="text-xs text-indigo-600 font-normal">${activeColorName}</span></h3>
+                <p class="text-indigo-600 font-extrabold text-lg mb-2">${p.price.toLocaleString('uz-UZ')} so'm</p>
+                
+                <div class="text-xs text-gray-500 space-y-1 mb-3">
+                  <p><i class="fa-solid fa-ruler-combined mr-1 text-indigo-500"></i>O'lchamlar: <span class="font-semibold text-gray-700">${p.sizes || 'S/5XL'}</span></p>
+                  <p><i class="fa-solid fa-truck-fast mr-1 text-indigo-500"></i>Yetkazib berish: <span class="font-semibold text-gray-700">${p.delivery || '12-18 kun'}</span></p>
+                </div>
+
+                ${p.variants && p.variants.length > 1 ? `
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-medium text-gray-500">Rasm varianti:</span>
+                    <div class="flex gap-1.5">
+                      ${p.variants.map((v, idx) => `
+                        <button 
+                          onclick="selectColor(${p.id}, ${idx})" 
+                          title="${v.colorName}" 
+                          class="w-5 h-5 rounded-full border-2 ${ (p.selectedColorIndex || 0) === idx ? 'border-indigo-600 scale-110 shadow' : 'border-gray-200 opacity-70' } transition" 
+                          style="background-color: ${v.colorHex};">
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            <div class="p-4 pt-0">
+              <button onclick="addToCart(${p.id})" class="w-full bg-gray-900 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-cart-plus"></i> Savatga qo'shish
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-gray-900', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-700');
+      });
+      event.target.classList.remove('bg-white', 'text-gray-700');
+      event.target.classList.add('bg-gray-900', 'text-white');
+      renderProducts();
+    }
+
+    function handleSearch() {
+      renderProducts();
+    }
+
+    // CART MANAGEMENT
+    function addToCart(id) {
+      const prod = products.find(p => p.id === id);
+      if(!prod) return;
+
+      const activeVar = prod.variants ? prod.variants[prod.selectedColorIndex || 0] : null;
+      const itemTitle = activeVar && activeVar.colorName ? `${prod.name} (${activeVar.colorName})` : prod.name;
+      const itemImg = activeVar ? activeVar.image : prod.image;
+      const cartItemId = `${id}-${prod.selectedColorIndex || 0}`;
+
+      const item = cart.find(c => c.cartItemId === cartItemId);
+      if (item) {
+        item.qty += 1;
+      } else {
+        cart.push({ 
+          id: prod.id,
+          cartItemId: cartItemId, 
+          name: itemTitle, 
+          price: prod.price, 
+          image: itemImg, 
+          qty: 1 
+        });
+      }
+
+      updateCartUI();
+      showToast(`${itemTitle} savatga qo'shildi!`);
+    }
+
+    function changeQty(cartItemId, delta) {
+      const item = cart.find(c => c.cartItemId === cartItemId);
+      if (!item) return;
+
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(c => c.cartItemId !== cartItemId);
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartCount = document.getElementById('cartCount');
+      const cartItemsList = document.getElementById('cartItemsList');
+      const cartTotalPrice = document.getElementById('cartTotalPrice');
+
+      const totalItems = cart.reduce((acc, c) => acc + c.qty, 0);
+      const totalPrice = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
+
+      cartCount.innerText = totalItems;
+      cartTotalPrice.innerText = `${totalPrice.toLocaleString('uz-UZ')} so'm`;
+
+      if (cart.length === 0) {
+        cartItemsList.innerHTML = `<div class="text-center py-12 text-gray-400">Savatingiz bo'sh</div>`;
+      } else {
+        cartItemsList.innerHTML = cart.map(item => `
+          <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg">
+            <div class="flex-1">
+              <h4 class="font-bold text-xs text-gray-800 line-clamp-1">${item.name}</h4>
+              <p class="text-xs text-indigo-600 font-semibold mt-1">${(item.price * item.qty).toLocaleString('uz-UZ')} so'm</p>
+              <div class="flex items-center gap-2 mt-2">
+                <button onclick="changeQty('${item.cartItemId}', -1)" class="w-6 h-6 bg-white border rounded flex items-center justify-center text-xs font-bold">-</button>
+                <span class="text-xs font-semibold">${item.qty}</span>
+                <button onclick="changeQty('${item.cartItemId}', 1)" class="w-6 h-6 bg-white border rounded flex items-center justify-center text-xs font-bold">+</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function toggleCartDrawer() {
+      document.getElementById('cartDrawer').classList.toggle('hidden');
+    }
+
+    // PAGES & CHECKOUT
+    function showPage(pageName) {
+      if(pageName === 'catalog') {
+        document.getElementById('catalogPage').classList.remove('hidden');
+        document.getElementById('heroBanner').classList.remove('hidden');
+        document.getElementById('checkoutPage').classList.add('hidden');
+      } else if(pageName === 'checkout') {
+        document.getElementById('catalogPage').classList.add('hidden');
+        document.getElementById('heroBanner').classList.add('hidden');
+        document.getElementById('checkoutPage').classList.remove('hidden');
+        renderCheckoutSummary();
+      }
+    }
+
+    function goToCheckout() {
+      if(cart.length === 0) {
+        showToast("Savatingiz bo'sh!");
+        return;
+      }
+      toggleCartDrawer();
+      showPage('checkout');
+    }
+
+    function renderCheckoutSummary() {
+      const list = document.getElementById('checkoutSummaryList');
+      const subtotal = document.getElementById('checkoutSubtotal');
+      const total = document.getElementById('checkoutTotal');
+
+      const sum = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
+
+      list.innerHTML = cart.map(i => `
+        <div class="flex justify-between items-center text-xs border-b pb-2">
+          <div class="flex items-center gap-2">
+            <img src="${i.image}" class="w-8 h-8 rounded object-cover">
+            <span class="font-medium text-gray-800">${i.name} x${i.qty}</span>
+          </div>
+          <span class="font-semibold">${(i.price * i.qty).toLocaleString('uz-UZ')} so'm</span>
+        </div>
+      `).join('');
+
+      subtotal.innerText = `${sum.toLocaleString('uz-UZ')} so'm`;
+      total.innerText = `${sum.toLocaleString('uz-UZ')} so'm`;
+    }
+
+    function handlePlaceOrder(e) {
+      e.preventDefault();
+      document.getElementById('successModal').classList.remove('hidden');
+    }
+
+    function finishOrder() {
+      cart = [];
+      updateCartUI();
+      document.getElementById('successModal').classList.add('hidden');
+      showPage('catalog');
+    }
+
+    // ADMIN PASSWORD CHECK
+    function checkAdminAccess() {
+      const password = prompt("Admin panelga kirish uchun parolni kiriting:");
+      if (password === null) return;
+      
+      if (password === "BEKZODBEK ENG ZOR BALA YOV") {
+        toggleAdminPanel();
+      } else {
+        alert("Xato parol! Kirish taqiqlanadi.");
+      }
+    }
+
+    function toggleAdminPanel() {
+      document.getElementById('adminModal').classList.toggle('hidden');
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedImageData = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleSaveProduct(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editProductId').value;
+      const name = document.getElementById('prodName').value;
+      const category = document.getElementById('prodCategory').value;
+      const price = Number(document.getElementById('prodPrice').value);
+      const urlImage = document.getElementById('prodImageUrl').value;
+
+      const finalImage = selectedImageData || urlImage || 'https://via.placeholder.com/400x500?text=Rasm+Mavjud+Emas';
+
+      if (editId) {
+        const idx = products.findIndex(p => p.id === Number(editId));
+        if(idx !== -1) {
+          products[idx].name = name;
+          products[idx].category = category;
+          products[idx].price = price;
+          if(products[idx].variants && products[idx].variants.length > 0) {
+            products[idx].variants[0].image = finalImage;
+          } else {
+            products[idx].image = finalImage;
+          }
+        }
+      } else {
+        const newProduct = {
+          id: Date.now(),
+          name,
+          category,
+          price,
+          sizes: "S / 5XL",
+          delivery: "12-18 kun",
+          selectedColorIndex: 0,
+          variants: [
+            { colorName: 'Standart', colorHex: '#4f46e5', image: finalImage }
+          ]
+        };
+        products.unshift(newProduct);
+      }
+
+      saveProductsLocally();
+      renderProducts();
+      renderAdminProducts();
+      resetAdminForm();
+      showToast("Mahsulot saqlandi!");
+    }
+
+    function editAdminProduct(id) {
+      const p = products.find(item => item.id === id);
+      if(!p) return;
+
+      const activeImg = p.variants ? p.variants[0].image : p.image;
+
+      document.getElementById('editProductId').value = p.id;
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodCategory').value = p.category;
+      document.getElementById('prodPrice').value = p.price;
+      document.getElementById('prodImageUrl').value = activeImg.startsWith('data:') ? '' : activeImg;
+      selectedImageData = activeImg.startsWith('data:') ? activeImg : '';
+    }
+
+    function deleteAdminProduct(id) {
+      if(confirm("Haqiqatdan ham o'chirmoqchimisiz?")) {
+        products = products.filter(p => p.id !== id);
+        saveProductsLocally();
+        renderProducts();
+        renderAdminProducts();
+        showToast("O'chirildi");
+      }
+    }
+
+    function resetAdminForm() {
+      document.getElementById('addProductForm').reset();
+      document.getElementById('editProductId').value = '';
+      selectedImageData = '';
+    }
+
+    function renderAdminProducts() {
+      const list = document.getElementById('adminProductList');
+      list.innerHTML = products.map(p => {
+        const img = p.variants ? p.variants[0].image : p.image;
+        return `
+          <div class="flex items-center justify-between p-2 bg-white rounded-lg border text-xs">
+            <div class="flex items-center gap-2">
+              <img src="${img}" class="w-8 h-8 rounded object-cover">
+              <div>
+                <p class="font-bold text-gray-800">${p.name}</p>
+                <p class="text-gray-500">${p.price.toLocaleString('uz-UZ')} so'm</p>
+              </div>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="editAdminProduct(${p.id})" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteAdminProduct(${p.id})" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('toast-show');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
