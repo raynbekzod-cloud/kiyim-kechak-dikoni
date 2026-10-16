@@ -278,8 +278,15 @@
         delivery: "12-18 kun",
         selectedColorIndex: 0,
         variants: [
-          { colorName: "Yopiq yoqa", colorHex: "#dscegg", innerHTML = ` <img wit src="photo_2026-10-13_12-56-22.jpg" alt="">` },
-          { colorName: "Ochiq yoqa", colorHex: "#dc2626", image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&q=80&w=800" }
+          {
+            colorName: "Oq-qizil",
+            colorHex: "#991b1b",
+            image: "rasim1.1.jpg",
+            images: [
+              "rasim1.1.jpg",
+              "rasim1.2.jpg"
+            ]
+          }
         ]
       },
       {
@@ -291,7 +298,7 @@
         delivery: "12-18 kun",
         selectedColorIndex: 0,
         variants: [
-          { colorName: "Kulrang to'plam", colorHex: "#9ca3af", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800" }
+          { colorName: "Kulrang to'plam", colorHex: "#9ca3af", image: "rasim2.jpg" }
         ]
       },
       {
@@ -303,7 +310,7 @@
         delivery: "12-18 kun",
         selectedColorIndex: 0,
         variants: [
-          { colorName: "Qora / Kulrang", colorHex: "#18181b", image: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=80&w=800" }
+          { colorName: "Qora / Kulrang", colorHex: "#18181b", image: "rasim3.jpg" }
         ]
       },
       {
@@ -315,7 +322,7 @@
         delivery: "12-18 kun",
         selectedColorIndex: 0,
         variants: [
-          { colorName: "Japan Zipka + Qora", colorHex: "#27272a", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800" }
+          { colorName: "Japan Zipka + Qora", colorHex: "#27272a", image: "rasim4.jpg" }
         ]
       }
     ];
@@ -326,10 +333,27 @@
     let selectedImageData = '';
 
     function init() {
+      updateDefaultProductPhotos();
       saveProductsLocally();
       renderProducts();
       updateCartUI();
       renderAdminProducts();
+    }
+
+    function updateDefaultProductPhotos() {
+      const photoUpdateKey = 'moda_product_photos_v1';
+      if (localStorage.getItem(photoUpdateKey)) return;
+
+      defaultProducts.forEach(defaultProduct => {
+        const savedProduct = products.find(product => product.id === defaultProduct.id);
+        if (savedProduct) {
+          savedProduct.variants = defaultProduct.variants;
+          savedProduct.selectedColorIndex = 0;
+          savedProduct.selectedImageIndex = 0;
+        }
+      });
+
+      localStorage.setItem(photoUpdateKey, 'done');
     }
 
     function saveProductsLocally() {
@@ -340,6 +364,17 @@
       const p = products.find(prod => prod.id === prodId);
       if(p) {
         p.selectedColorIndex = colorIndex;
+        p.selectedImageIndex = 0;
+        saveProductsLocally();
+        renderProducts();
+      }
+    }
+
+    function selectProductImage(prodId, imageIndex) {
+      const product = products.find(prod => prod.id === prodId);
+      if (product) {
+        product.selectedImageIndex = imageIndex;
+        saveProductsLocally();
         renderProducts();
       }
     }
@@ -361,7 +396,11 @@
 
       grid.innerHTML = filtered.map(p => {
         const activeVar = p.variants ? p.variants[p.selectedColorIndex || 0] : { colorName: '', image: p.image };
-        const activeImg = activeVar ? activeVar.image : p.image;
+        const productImages = activeVar && activeVar.images && activeVar.images.length
+          ? activeVar.images
+          : [activeVar ? activeVar.image : p.image];
+        const selectedImageIndex = Math.min(p.selectedImageIndex || 0, productImages.length - 1);
+        const activeImg = productImages[selectedImageIndex];
         const activeColorName = activeVar && activeVar.colorName ? ` (${activeVar.colorName})` : '';
 
         return `
@@ -375,6 +414,19 @@
                 <span class="absolute top-3 right-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">
                   🇺🇿 O'zbekiston bo'ylab
                 </span>
+                ${productImages.length > 1 ? `
+                  <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+                    ${productImages.map((image, idx) => `
+                      <button
+                        type="button"
+                        onclick="selectProductImage(${p.id}, ${idx})"
+                        aria-label="Mahsulot rasmi ${idx + 1}"
+                        class="w-12 h-12 rounded-lg overflow-hidden border-2 ${selectedImageIndex === idx ? 'border-indigo-600' : 'border-white'} shadow">
+                        <img src="${image}" alt="" class="w-full h-full object-cover">
+                      </button>
+                    `).join('')}
+                  </div>
+                ` : ''}
               </div>
               <div class="p-4">
                 <h3 class="font-bold text-gray-900 text-base mb-1">${p.name}<span class="text-xs text-indigo-600 font-normal">${activeColorName}</span></h3>
@@ -434,7 +486,10 @@
 
       const activeVar = prod.variants ? prod.variants[prod.selectedColorIndex || 0] : null;
       const itemTitle = activeVar && activeVar.colorName ? `${prod.name} (${activeVar.colorName})` : prod.name;
-      const itemImg = activeVar ? activeVar.image : prod.image;
+      const itemImages = activeVar && activeVar.images && activeVar.images.length ? activeVar.images : null;
+      const itemImg = itemImages
+        ? itemImages[Math.min(prod.selectedImageIndex || 0, itemImages.length - 1)]
+        : activeVar ? activeVar.image : prod.image;
       const cartItemId = `${id}-${prod.selectedColorIndex || 0}`;
 
       const item = cart.find(c => c.cartItemId === cartItemId);
@@ -602,6 +657,8 @@
           products[idx].price = price;
           if(products[idx].variants && products[idx].variants.length > 0) {
             products[idx].variants[0].image = finalImage;
+            products[idx].variants[0].images = [finalImage];
+            products[idx].selectedImageIndex = 0;
           } else {
             products[idx].image = finalImage;
           }
